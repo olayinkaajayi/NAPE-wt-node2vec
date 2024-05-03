@@ -157,7 +157,7 @@ def run(args, G, nodes, pos_neigh, neg_samples, deg_pos_neigh, deg_neg_samples, 
     old_similar = N
 
     old_loss = np.inf
-    model = Position_encode(G, d, pos_neigh, neg_samples,
+    model = Position_encode(G, N, d, pos_neigh, neg_samples,
                             deg_pos_neigh, deg_neg_samples, deg_vec,
                             init=True, seed=args.seed, scale=args.scale)
 
@@ -222,7 +222,7 @@ def run(args, G, nodes, pos_neigh, neg_samples, deg_pos_neigh, deg_neg_samples, 
             except KeyboardInterrupt as e:
                 del model
                 print("\nGetting result from SAVED MODEL:")
-                model = Position_encode(G, d, pos_neigh, neg_samples, deg_pos_neigh, deg_neg_samples, deg_vec, scale=args.scale)
+                model = Position_encode(G, N, d, pos_neigh, neg_samples, deg_pos_neigh, deg_neg_samples, deg_vec, scale=args.scale)
                 model.load_state_dict(torch.load(os.path.join(save_path,f'd={d}_{args.checkpoint}'),map_location=device))
                 model.to(device)
 
@@ -240,7 +240,7 @@ def run(args, G, nodes, pos_neigh, neg_samples, deg_pos_neigh, deg_neg_samples, 
     # Load best result
     del model
     print("\nGetting result from SAVED MODEL:")
-    model = Position_encode(G, d, pos_neigh, neg_samples, deg_pos_neigh, deg_neg_samples, deg_vec, scale=args.scale)
+    model = Position_encode(G, N, d, pos_neigh, neg_samples, deg_pos_neigh, deg_neg_samples, deg_vec, scale=args.scale)
     model.load_state_dict(torch.load(os.path.join(save_path,f'd={d}_{args.checkpoint}'),map_location=device))
     model.to(device)
 
@@ -287,7 +287,10 @@ def check_result(model, device, G=None, nodes=[], final=False):
     N,d = Z.shape
     # This is because we use multiple GPU
     if not final:
-        N = N//torch.cuda.device_count()
+        try:
+            N = N//torch.cuda.device_count()
+        except ZeroDivisionError:
+            N = N//1
     Z = Z[:N]
     err = 0.0001
     Z = Z + err
