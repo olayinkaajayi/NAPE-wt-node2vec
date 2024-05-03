@@ -105,13 +105,14 @@ def get_necessary_objects(args, nx_G, nodes_with_degX):
 
 	attachment = f'_wl-{args.walk_length}-nw-{args.num_walks}-p-{args.p}-q-{args.q}-seed-{args.seed}'
 
-	filename_pos_neigh = f'pos_neigh{attachment}.json'
-	filename_deg_pos_neigh = f'deg_pos_neigh{attachment}.json'
+	dataset = args.filename.split('.')[0]
+	filename_pos_neigh = f'{dataset}_pos_neigh{attachment}.json'
+	filename_deg_pos_neigh = f'{dataset}_deg_pos_neigh{attachment}.json'
 
 	path_pos_neigh = os.path.join(os.getcwd(),'pos_n_neg_neigh',filename_pos_neigh)
 	path_deg_pos_neigh = os.path.join(os.getcwd(),'pos_n_neg_neigh',filename_deg_pos_neigh)
 
-	if os.path.exists(path_pos_neigh) and os.path.exists(path_pos_neigh):
+	if os.path.exists(path_pos_neigh) and os.path.exists(path_deg_pos_neigh):
 		print("\nReading saved Simulated walks...")
 		pos_neigh = read_as_json(filename_pos_neigh)
 		deg_pos_neigh = read_as_json(filename_deg_pos_neigh)
