@@ -15,5 +15,9 @@ build
 *.txt
 *.pt
 *.json
+*.out
+*.err
+*.sh
+*.sbatch
 node2vec_spark
 emb
