@@ -16,9 +16,10 @@ class Position_encode(nn.Module):
     def __init__(self, G=None, N=None, d=None,
                 pos_neigh={}, neg_samples=[], deg_pos_neigh={},
                 deg_neg_samples={}, deg_vec=None,
-                init=False, seed=10, scale=False):
+                init=False, seed=10, scale=False, p_neg=0.6):
         super(Position_encode, self).__init__()
 
+        self.p_neg = p_neg # the percentage of negative neighbours to use
         self.scale = scale
         self.my_sigmoid = Sigmoid_alt()
         self.N = len(G.nodes()) if N is None else N
@@ -79,14 +80,17 @@ class Position_encode(nn.Module):
         return (zi - zp).abs().sum(dim=-1)
 
 
-    def softmax_formula(self, Z, i, pos_neigh, neg_samples):
+    def softmax_formula(self, Z, i, pos_neigh, neg_samples, deg=False):
         """
             This is an implementation of the softmax-based equation
             used in supervised contrastive learning.
         """
         if len(pos_neigh) == 0:
             pos_neigh = [i]
-            self.pos_neigh[i] = pos_neigh
+            if not deg:
+                self.pos_neigh[i] = pos_neigh
+            else:
+                self.deg_pos_neigh[i] = pos_neigh
         neg_samples = list(neg_samples)
         num_unique_pos_neigh = len(pos_neigh) * 1.0 #make it a float
         sum_neg = torch.exp(self.hamming_dist(Z[i], Z[neg_samples])).sum()
@@ -138,15 +142,37 @@ class Position_encode(nn.Module):
                                                 neg_samples=self.get_non_intersecting_neg_neigh(i))
             else:
                 # node distribution
-                if self.neg_samples[i] is None:
-                    print("****NODE")
-                total += self.softmax_formula(Z, i, pos_neigh=self.pos_neigh[i],
-                                                neg_samples=self.neg_samples[i])
+                if self.pos_neigh is None:
+                    # Do this if when computing all neighbours in advance exhausts memory
+                    pos_neigh = list(self.G.neighbors(i))
+                    if len(pos_neigh) == 0: # this is done for solitary nodes
+                        pos_neigh = [i]
+                    neg_samples = set(self.G.nodes()).difference(list(self.G.neighbors(i)) + [i])
+                    neg_samples = random.sample(neg_samples, int(len(neg_samples)*self.p_neg))
+                else:
+                    pos_neigh = self.pos_neigh[i]
+                    neg_samples = self.neg_samples[i]
+
+                total += self.softmax_formula(Z, i, pos_neigh=pos_neigh,
+                                                neg_samples=neg_samples)
+                del pos_neigh, neg_samples # save memory
+
                 # Degree distribution
-                if self.deg_neg_samples[i] is None:
-                    print("****DEGREE DIST")
-                deg_dist_total += self.softmax_formula(Z, i, pos_neigh=self.deg_pos_neigh[i],
-                                                neg_samples=self.deg_neg_samples[i])
+                if self.deg_neg_samples is None:
+                    nodes_with_degX = self.deg_pos_neigh
+                    deg_pos_neigh = nodes_with_degX[self.G.degree[i]]
+                    if len(deg_pos_neigh) == 0:
+                        deg_pos_neigh = [i] # For isolated nodes
+                    deg_neg_samples = set(self.G.nodes()).difference(nodes_with_degX[self.G.degree[i]])
+                    deg_neg_samples = random.sample(deg_neg_samples, int(len(deg_neg_samples)*self.p_neg))
+                else:
+                    deg_pos_neigh = self.deg_pos_neigh[i]
+                    deg_neg_samples = self.deg_neg_samples[i]
+                    
+                    
+                deg_dist_total += self.softmax_formula(Z, i, pos_neigh=deg_pos_neigh,
+                                                neg_samples=deg_neg_samples, deg=True)
+                del deg_pos_neigh, deg_neg_samples, nodes_with_degX # save memory
 
 
         return total, deg_dist_total
