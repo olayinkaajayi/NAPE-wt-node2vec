@@ -81,15 +81,15 @@ def convert_to_edgelist(adj_file='WikiCSDataset_adj.npy', folder='/dcs/large/u20
 		assert ext in ['npy', 'edgelist', 'json'], 'Input file should be edgelist, json or numpy array.'
 
 
-def get_negative_samples(G, sorted_nodes=[], scale=False):
+def get_negative_samples(args, G, sorted_nodes=[]):
 	"""Generate negative samples for approximating the softmax with logistic regression."""
 	sorted_lst = sorted( list(G.degree()) )
 	degree_vec = np.array( list( dict(sorted_lst).values() ) , dtype=float)
-	if scale:
+	if args.scale:
 		degree_prob = degree_vec/degree_vec.sum()
 		neg_samples = np.random.choice(a=sorted_nodes, size= args.k, replace=False, p=degree_prob)
 	else:
-		neg_samples = [set(sorted_nodes).difference(list(G.neighbors(node)) + [node]) for node in sorted_nodes]
+		neg_samples = None if args.memory_issue else [set(sorted_nodes).difference(list(G.neighbors(node)) + [node]) for node in sorted_nodes]
 
 	return neg_samples, degree_vec
 
@@ -99,11 +99,11 @@ def get_nodes_with_degX(degree_vec):
 	nodes_with_degX = {deg: np.where(degree_vec==deg)[0].tolist() for deg in unique_deg}
 	return nodes_with_degX
 
-def get_neg_samples_deg_dist(G, nodes=[], nodes_with_degX={}, scale=False):
+def get_neg_samples_deg_dist(G, args, nodes=[], nodes_with_degX={}, scale=False):
 	if scale:
 		return set(random.sample(nodes,args.k_deg))
 	else:
-		return {node:set(nodes).difference(nodes_with_degX[G.degree[node]]) for node in nodes}
+		return None if args.memory_issue else {node:set(nodes).difference(nodes_with_degX[G.degree[node]]) for node in nodes}
 
 
 def get_necessary_objects(args, nx_G, nodes_with_degX, nodes, scale=False):
@@ -135,8 +135,8 @@ def get_necessary_objects(args, nx_G, nodes_with_degX, nodes, scale=False):
 			save_as_json(pos_neigh,filename_pos_neigh)
 			save_as_json(deg_pos_neigh,filename_deg_pos_neigh)
 	else:
-		pos_neigh = {node:list(nx_G.neighbors(node)) for node in nodes}
-		deg_pos_neigh = {node:nodes_with_degX[nx_G.degree[node]] for node in nodes}
+		pos_neigh = None if args.memory_issue else {node:list(nx_G.neighbors(node)) for node in nodes}
+		deg_pos_neigh = nodes_with_degX if args.memory_issue else {node:nodes_with_degX[nx_G.degree[node]] for node in nodes}
 
 	return pos_neigh, deg_pos_neigh
 
@@ -153,13 +153,13 @@ def main(args):
 	nodes = sorted(list(nx_G.nodes()))
 	print(f"Node len: {len(nodes)}, max node: {max(nodes)}")
 
-	neg_samples, degree_vec = get_negative_samples(nx_G,nodes,args.scale)
+	neg_samples, degree_vec = get_negative_samples(args,nx_G,nodes)
 
 	# deg_pos_neigh: Dict(keys: degree, values: list of nodes having said degree)
 	nodes_with_degX = get_nodes_with_degX(degree_vec)
 
 	# list of negative samples (for degree graph)
-	deg_neg_samples = get_neg_samples_deg_dist(nx_G,nodes, nodes_with_degX, args.scale)
+	deg_neg_samples = get_neg_samples_deg_dist(nx_G, args, nodes, nodes_with_degX, args.scale)
 
 	# pos_neigh: Dict(keys: nodes, values: merged elements of random walk)
 	pos_neigh, deg_pos_neigh = get_necessary_objects(args, nx_G, nodes_with_degX, nodes, args.scale)
