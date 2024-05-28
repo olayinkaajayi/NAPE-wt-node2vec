@@ -127,6 +127,8 @@ def parse_args():
 
     parser.add_argument('--k', type=int, default=10, help='size of negative samples to be drawn (default: 10)')
 
+    parser.add_argument('--p-neg', type=float, default=0.6, help='the percentage of negative neighbours to use (default: 0.6)')
+
     parser.add_argument('--k_deg', type=int, default=20,
                     help='size of negative samples to be drawn for degree distribution (default: 20)')
 
@@ -138,6 +140,9 @@ def parse_args():
 
     parser.add_argument('--no-scale', dest='scale', action='store_false', default=True,
                     help='decide if we use the scaled version of the NAPE algorithm (default: True)')
+
+    parser.add_argument('-m', '--mem', dest='memory_issue', action='store_true', default=False,
+                    help='computes neighbours during training to avoid exhausting memory (default: False)')
 
     return parser.parse_args()
 
@@ -159,7 +164,7 @@ def run(args, G, nodes, pos_neigh, neg_samples, deg_pos_neigh, deg_neg_samples, 
     old_loss = np.inf
     model = Position_encode(G, N, d, pos_neigh, neg_samples,
                             deg_pos_neigh, deg_neg_samples, deg_vec,
-                            init=True, seed=args.seed, scale=args.scale)
+                            init=True, seed=args.seed, scale=args.scale, p_neg=args.p_neg)
 
     if args.use_saved_model:
         # To load model
