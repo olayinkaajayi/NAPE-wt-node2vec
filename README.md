@@ -5,7 +5,7 @@ This repository provides a reference implementation of *NAPE* as described in th
 We used NAPE to learn the position encoding for some benchmark datasets like WikiCS, PubMed and OGB-collab. This [links](https://github.com/olayinkaajayi/benchmarking-gnns-pos-encode.git) to the repository for all the experiments for each dataset.
 
 The NAPE algorithm was used to learn the poistion encoding for the human skeletal graph (see figure below). The figure shows a human skeletal graph with the nodes numbered/ordered canonically from 1 to 25. And the figure also shows another numbering for each node using the NAPE algorithm. The NAPE ordering is used with the sinusoidal vector equation as position encodings for the skeletal graph in human action recognition models.
-![image info](./NAPE Human skeletal graph.jpg)
+![image](./NAPE Human skeletal graph.jpg)
 
 Here are the links to the implementation of some action recognition algorithms, with NAPE included as a position encoding for the human skeletal graph:
 > [2s-AGCN](https://github.com/olayinkaajayi/2s-AGCN-NAPE.git)<br>
