@@ -1,55 +1,20 @@
-# node2vec
+# NAPE: Numbering as A Position Encoding
 
-This repository provides a reference implementation of *node2vec* as described in the paper:<br>
-> node2vec: Scalable Feature Learning for Networks.<br>
-> Aditya Grover and Jure Leskovec.<br>
-> Knowledge Discovery and Data Mining, 2016.<br>
-> <Insert paper link>
+This repository provides a reference implementation of *NAPE* as described in the paper *(TBC)*.
 
-The *node2vec* algorithm learns continuous representations for nodes in any (un)directed, (un)weighted graph. Please check the [project page](https://snap.stanford.edu/node2vec/) for more details. 
+We used NAPE to learn the position encoding for some benchmark datasets like WikiCS, PubMed and OGB-collab. This [links](https://github.com/olayinkaajayi/benchmarking-gnns-pos-encode.git).
 
-### Basic Usage
+The NAPE algorithm was used to learn the poistion encoding for the human skeletal graph (see figure below). The figure shows a human skeletal graph with the nodes numbered/ordered canonically from 1 to 25. And the figure also shows another numbering for each node using the NAPE algorithm. The NAPE ordering is used with the sinusoidal vector equation as position encodings for the skeletal graph in human action recognition models.
+![image info](./NAPE Human skeletal graph.jpg)
 
-#### Example
-To run *node2vec* on Zachary's karate club network, execute the following command from the project home directory:<br/>
-	``python src/main.py --input graph/karate.edgelist --output emb/karate.emd``
+Here are the links to the implementation of some action recognition algorithms, with NAPE included as a position encoding for the human skeletal graph:
+> [2s-AGCN](https://github.com/olayinkaajayi/2s-AGCN-NAPE.git)<br>
+> [ST-GCN](https://github.com/olayinkaajayi/ActionRecognition.git)<br>
+> [InfoGCN](https://github.com/olayinkaajayi/infogcn-wt-NAPE.git)
 
-#### Options
-You can check out the other options available to use with *node2vec* using:<br/>
-	``python src/main.py --help``
-
-#### Input
-The supported input format is an edgelist:
-
-	node1_id_int node2_id_int <weight_float, optional>
-		
-The graph is assumed to be undirected and unweighted by default. These options can be changed by setting the appropriate flags.
-
-#### Output
-The output file has *n+1* lines for a graph with *n* vertices. 
-The first line has the following format:
-
-	num_of_nodes dim_of_representation
-
-The next *n* lines are as follows:
-	
-	node_id dim1 dim2 ... dimd
-
-where dim1, ... , dimd is the *d*-dimensional representation learned by *node2vec*.
-
-### Citing
-If you find *node2vec* useful for your research, please consider citing the following paper:
-
-	@inproceedings{node2vec-kdd2016,
-	author = {Grover, Aditya and Leskovec, Jure},
-	 title = {node2vec: Scalable Feature Learning for Networks},
-	 booktitle = {Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining},
-	 year = {2016}
-	}
+### Abstract
+Deep learning has been instrumental in feature extraction from various data types, such as images and sequences, which inherently possess oriented structures. However, graph data, which delineate relationships between entities, lack such structures, posing challenges for embedding nodes uniquely in high-dimensional spaces. This paper introduces a novel position encoding method, Numbering as a Position Encoding (NAPE), which utilizes precomputed random walks and Hamming distances to approximate node orderings in graphs. NAPE assigns unique integers to nodes based on their local neighborhoods, facilitating the generation of sinusoidal vectors that uniquely encode node positions. This method mitigates the computational expenses and non-uniqueness issues associated with eigenvector-based approaches, ensuring distinct node embeddings for various graph-based applications, including human action recognition. Our approach, scalable with computational complexity $\mathcal{O}(|V|^2)$, demonstrates improved efficiency and effectiveness in embedding nodes uniquely. Notably, NAPE improves the accuracy of action recognition models applied to human skeletal graphs. The versatility of NAPE is highlighted by its ability to generalize across different models, making it a robust solution for training action recognition systems with large parameter sizes.
 
 
-### Miscellaneous
-
-Please send any questions you might have about the code and/or the algorithm to <adityag@cs.stanford.edu>.
-
-*Note:* This is only a reference implementation of the *node2vec* algorithm and could benefit from several performance enhancement schemes, some of which are discussed in the paper.
+### Note
+We have used as part of our implementation the repository of [Node2Vec](https://github.com/aditya-grover/node2vec.git), especially for scaling the NAPE algorithm.
