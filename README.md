@@ -1,6 +1,6 @@
 # NAPE: Numbering as A Position Encoding
 
-This repository provides a reference implementation of *NAPE* as described in the paper *(TBC)*.
+This repository provides a reference implementation of *NAPE* as described in the [paper](https://ieeexplore.ieee.org/document/10750197).
 
 We used NAPE to learn the position encoding for some benchmark datasets like WikiCS, PubMed and OGB-collab. This [links](https://github.com/olayinkaajayi/benchmarking-gnns-pos-encode.git) to the repository for all the experiments for each dataset.
 
